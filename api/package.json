@@ -1,0 +1,31 @@
+{
+  "name": "express-jwt-template",
+  "version": "1.0.0",
+  "description": "Express API for basic user authentication",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "build": "rm -rf build && mkdir build && babel -d ./build ./src -s",
+    "dev": "nodemon --exec babel-node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aidan Glickman",
+  "license": "MIT",
+  "dependencies": {
+    "argon2": "^0.26.2",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "nodemailer": "^6.4.11",
+    "pg": "^8.3.0",
+    "sequelize": "^6.3.3",
+    "validator": "^13.1.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.10.5",
+    "@babel/node": "^7.10.5",
+    "@babel/preset-env": "^7.10.4",
+    "nodemon": "^2.0.4"
+  }
+}
