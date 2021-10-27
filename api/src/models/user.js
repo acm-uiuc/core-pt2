@@ -5,9 +5,9 @@ const user = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV1,
       primaryKey: true,
     },
-    username: {
+    name: {
       type: DataTypes.STRING,
-      unique: true,
+      unique: false,
       allowNull: false,
       validate: {
         notEmpty: true,
@@ -19,30 +19,18 @@ const user = (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         notEmpty: true,
+        isEmail: true,
+        isIllinois: (value) => {
+          if(value.toLowerCase().split("@")[1] != "illinois.edu"){
+            throw new Error("Email must end in @illinois.edu");
+          }
+        }
       },
     },
     password: {
       type: DataTypes.STRING,
-    },
-    role: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
-    },
-  });
-
-  User.findByLogin = async (login) => {
-    let user = await User.findOne({
-      where: { username: login },
-    });
-
-    if (!user) {
-      user = await User.findOne({
-        where: { email: login },
-      });
     }
-
-    return user;
-  };
+  });
 
   return User;
 };
