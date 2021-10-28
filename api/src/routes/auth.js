@@ -1,7 +1,4 @@
 import { Router } from 'express';
-import isAuth from '../middlewares/isAuth';
-import attachUser from '../middlewares/attachUser';
-import roleCheck from '../middlewares/roleCheck';
 import authService from '../services/authService';
 import Sequelize from 'sequelize';
 import models from '../models';
@@ -10,16 +7,16 @@ const router = Router();
 
 router.post('/register', async (req, res) => {
   const email = req.body.email;
-  const username = req.body.username;
+  const name = req.body.name;
   const password = req.body.password;
   let response;
   try {
-    response = await authService.register(email, password, username);
+    response = await authService.register(email, password, name);
   } catch (error) {
     if (error instanceof Sequelize.ValidationError) {
-      return res.status(401).send(error.errors[0].message);
+      return res.status(403).send(error.errors[0].message);
     }
-    return res.status(401).send(error.message);
+    return res.status(500).send(error.message);
   }
   return res.send(response);
 });

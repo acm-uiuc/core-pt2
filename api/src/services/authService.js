@@ -21,16 +21,12 @@ const authService = {
   generateToken: (user) => {
     return generateJWT(user);
   },
-  register: async (email, password, username) => {
-    if (!validator.isEmail(email)) {
-      throw new Error('Invalid email');
-    }
+  register: async (email, password, name) => {
     const hashed = await argon2.hash(password);
     const userRecord = await models.User.create({
-      username,
       email,
+      name,
       password: hashed,
-      role: -1,
     });
     try {
       mailService.sendRegEmail(generateJWT(userRecord));
@@ -40,7 +36,7 @@ const authService = {
     return {
       user: {
         email: userRecord.email,
-        username: userRecord.username,
+        name: userRecord
       },
     };
   },
@@ -62,10 +58,7 @@ const authService = {
     const updated = await user.update({ role: 0 });
 
     return {
-      user: {
-        email: updated.email,
-        username: updated.username,
-      },
+      email: updated.email,
       token: generateJWT(updated),
     };
   },

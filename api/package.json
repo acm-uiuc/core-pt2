@@ -1,10 +1,11 @@
 {
-  "name": "express-jwt-template",
+  "name": "yggdrasil",
+  "type": "module",
   "version": "1.0.0",
-  "description": "Express API for basic user authentication",
+  "description": "Express API for ACM User Authentication",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node --experimental-specifier-resolution=node src/index.js",
     "build": "rm -rf build && mkdir build && babel -d ./build ./src -s",
     "dev": "nodemon --exec babel-node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,9 +24,10 @@
     "validator": "^13.6.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.10.5",
+    "@babel/cli": "^7.15.7",
+    "@babel/core": "^7.15.8",
     "@babel/node": "^7.10.5",
-    "@babel/preset-env": "^7.10.4",
+    "@babel/preset-env": "^7.15.8",
     "nodemon": "^2.0.4"
   }
 }
