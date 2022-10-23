@@ -1,4 +1,4 @@
-FROM node:alpine AS base
+FROM node:lts-alpine AS base
 WORKDIR "/app"
 
 FROM base AS install
