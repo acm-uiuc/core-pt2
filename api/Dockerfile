@@ -4,10 +4,7 @@ WORKDIR "/app"
 FROM base AS install
 COPY package*.json ./
 COPY . .
-RUN apk add --no-cache make gcc g++ python3 && \
-    npm install && \
-    npm rebuild bcrypt --build-from-source && \
-    apk del make gcc g++ python3
+RUN npm install
 
 
 FROM install as builder

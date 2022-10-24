@@ -1,75 +1,33 @@
 import { Router } from 'express';
-import authService from '../services/authService';
-import Sequelize from 'sequelize';
-import models from '../models';
+import authService from '../services/authService'
 
 const router = Router();
 
-router.post('/register', async (req, res) => {
+router.post('/generate', async (req, res) => {
   const email = req.body.email;
-  const name = req.body.name;
-  const password = req.body.password;
-  let response;
+  const redirect = req.body.redirect;
   try {
-    response = await authService.register(email, password, name);
-  } catch (error) {
-    if (error instanceof Sequelize.ValidationError) {
-      return res.status(403).send(error.errors[0].message);
+    await authService.generateAndSend(redirect, email);
+  } catch (err) {
+    if (err.cause === 'bad_email') {
+      return res.status(403).send(err.message);
     }
-    return res.status(500).send(error.message);
+    console.log("error: " + err);
+    return res.status(500).send(err);
   }
-  return res.send(response);
+  return res.send("Sent verification email!");
 });
 
-router.post('/verify', async (req, res) => {
+router.post('/validate', async (req, res) => {
   const token = req.body.token;
-
-  let response;
+  let email;
   try {
-    response = await authService.verify(token);
-  } catch (error) {
-    if (error instanceof Sequelize.ValidationError) {
-      return res.status(401).send(error.errors[0].message);
-    }
-    return res.status(401).send(error.message);
+      email = await authService.validateToken(token);
+  } catch(err) {
+    
+    return res.status(401).send("Failed to verify valid token");
   }
-
-  res.send(response);
-});
-
-router.post('/forgot', async (req, res) => {
-  const username = req.body.username;
-  let response;
-  try {
-    response = await authService.forgot(username);
-  } catch (error) {
-    res.status(401).send(error.message);
-  }
-  res.send(response);
-});
-
-router.post('/reset', async (req, res) => {
-  const password = req.body.password;
-  const token = req.body.token;
-  let response;
-  try {
-    response = await authService.reset(token, password);
-  } catch (error) {
-    res.status(401).send(error.message);
-  }
-  res.send(response);
-});
-
-router.post('/login', async (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-  let response;
-  try {
-    response = await authService.login(username, password);
-  } catch (error) {
-    return res.status(401).send(error.message);
-  }
-  return res.send(response);
+  return res.send(email);
 });
 
 export default router;

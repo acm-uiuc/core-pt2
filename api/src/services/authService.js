@@ -1,123 +1,42 @@
-import * as argon2 from 'argon2';
-import * as jwt from 'jsonwebtoken';
-import models from '../models';
+import jwt from 'jsonwebtoken';
 import mailService from './mailService';
-import validator from 'validator';
 
 function generateJWT(user) {
   const data = {
-    id: user.id,
-    username: user.username,
     email: user.email,
   };
-
+  
   const signature = process.env.JWT_SECRET;
-  const expiration = '6h';
+  const expiration = '48h';
 
   return jwt.sign({ data }, signature, { expiresIn: expiration });
-}
+  }
 
 const authService = {
   generateToken: (user) => {
     return generateJWT(user);
   },
-  register: async (email, password, name) => {
-    const hashed = await argon2.hash(password);
-    const userRecord = await models.User.create({
-      email,
-      name,
-      password: hashed,
-    });
+
+  validateToken: (token) => {
+    const signature = process.env.JWT_SECRET;
+    let email;
     try {
-      mailService.sendRegEmail(generateJWT(userRecord));
-    } catch (error) {
-      throw new Error('Something went wrong. Please try again');
-    }
-    return {
-      user: {
-        email: userRecord.email,
-        name: userRecord
-      },
-    };
-  },
-
-  verify: async (token) => {
-    const signature = process.env.JWT_SECRET;
-    let email;
-    jwt.verify(token, signature, function (err, decoded) {
-      if (err) {
-        throw err;
-      }
+      let decoded = jwt.verify(token, signature);
       email = decoded.data.email;
-    });
-
-    const user = await models.User.findOne({ where: { email } });
-    if (user.role !== -1) {
-      throw new Error('User already verified');
+    } catch(err) {
+      throw err;
     }
-    const updated = await user.update({ role: 0 });
-
-    return {
-      email: updated.email,
-      token: generateJWT(updated),
-    };
+    return email;
   },
 
-  forgot: async (username) => {
-    const userRecord = await models.User.findByLogin(username);
-    if (userRecord) {
-      mailService.sendResetEmail(generateJWT(userRecord));
+  generateAndSend: async (redirect, email) => {
+    if(email.toLowerCase().split("@")[1] != "illinois.edu"){
+      throw new Error("Email must end in @illinois.edu", { cause: 'bad_email' });
     }
-    return {
-      username,
-    };
-  },
-
-  reset: async (token, password) => {
-    const signature = process.env.JWT_SECRET;
-    let email;
-    jwt.verify(token, signature, function (err, decoded) {
-      if (err) {
-        throw err;
-      }
-      email = decoded.data.email;
-    });
-
-    const user = await models.User.findOne({ where: { email } });
-    const hashed = await argon2.hash(password);
-    const updated = await user.update({ password: hashed });
-
-    return {
-      user: {
-        email: updated.email,
-        username: updated.username,
-      },
-      token: generateJWT(updated),
-    };
-  },
-
-  login: async (username, password) => {
-    const userRecord = await models.User.findByLogin(username);
-    if (userRecord.role === -1) {
-      throw new Error('You must verify your account before logging in.');
-    }
-    if (!userRecord) {
-      throw new Error('User not found');
-    } else {
-      const correctPass = await argon2.verify(userRecord.password, password);
-      if (!correctPass) {
-        throw new Error('Incorrect Password');
-      }
-    }
-
-    return {
-      user: {
-        email: userRecord.email,
-        username: userRecord.username,
-      },
-      token: generateJWT(userRecord),
-    };
-  },
-};
+    // todo: actually send email
+    const token = generateJWT({email: email});
+    await mailService.sendSignEmail(redirect, email, token);
+  }
+}
 
 export default authService;
